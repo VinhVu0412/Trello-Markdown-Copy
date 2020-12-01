@@ -26,26 +26,58 @@ const copyHyperText = (text, url) => {
   document.body.removeChild(link);
 }
 
+const fromCardDetail = event => {
+  const cardDetail = event.path.find(
+    e => e.classList && e.classList.value.includes('card-detail-window')
+  );
+
+  if (cardDetail) {
+    return {
+      cardName: cardDetail.getElementsByClassName('card-detail-title-assist')[0].innerText,
+      cardHref: window.location.href,
+      card: cardDetail,
+    };
+  }
+};
+
+const fromCard = event => {
+  const card = event.path.find(
+    e => e.classList && e.classList.value.includes('list-card js-member-droppable')
+  );
+
+  if (card) {
+    return {
+      cardName: card.getElementsByClassName('js-card-name')[0].innerText,
+      cardHref: card.href,
+      card,
+    };
+  }
+};
+
+const animate = card => {
+  const previousBorder = card.style.border;
+  card.style.border = '2px solid orange';
+
+  setTimeout(() => {
+    card.style.border = previousBorder;
+  }, 300);
+};
+
 window.addEventListener('click', function handleOnclick (event) {
   event.stopPropagation();
   if (event.shiftKey) {
-    const card = event.path.find(
-      e => e.classList && e.classList.value.includes('list-card js-member-droppable')
-    )
-    const cardName = card.getElementsByClassName('js-card-name')[0].innerText;
-    const cardHref = card.href;
-    const previousBorder = card.style.border;
-    card.style.border = '2px solid orange';
+    const cardData = fromCardDetail(event) || fromCard(event);
+    const { cardName, cardHref, card } = cardData || {};
 
-    setTimeout(() => {
-      card.style.border = previousBorder;
-    }, 300);
+    if(card) {
+      animate(card)
 
-    if (event.metaKey) {
-      copyToClipboard(`[${cardName}](${cardHref})`);
-    } else {
-      copyHyperText(cardName, cardHref);
+      if (event.metaKey) {
+        copyToClipboard(`[${cardName}](${cardHref})`);
+      } else {
+        copyHyperText(cardName, cardHref);
+      }
+      event.preventDefault();
     }
-    event.preventDefault();
   }
 });
